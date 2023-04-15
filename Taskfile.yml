@@ -1,0 +1,25 @@
+version: '3'
+
+tasks:
+  build-server:
+    dir: '{{.USER_WORKING_DIR}}/go'
+    cmds:
+      - "go build -o build/school-project-$GOOS-$GOARCH cmd/school-project/main.go"
+    env:
+      GOOS: "{{.OS}}"
+      GOARCH: "{{.ARCH}}"
+
+  build-ui:
+    cmds:
+      - echo nothing
+
+  build-server:linux-amd64:
+    - task: build-server
+      vars:
+        OS: linux
+        ARCH: amd64
+  build-server:linux-arm64:
+    - task: build-server
+      vars:
+        OS: linux
+        ARCH: arm64
