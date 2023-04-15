@@ -2,7 +2,11 @@ module github.com/sunny0531/SchoolProject
 
 go 1.19
 
-require github.com/gin-gonic/gin v1.9.0
+require (
+	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
+	github.com/emersion/go-smtp v0.16.0
+	github.com/gin-gonic/gin v1.9.0
+)
 
 require (
 	github.com/bytedance/sonic v1.8.0 // indirect

@@ -4,7 +4,7 @@ type Count struct {
 	Red    int `json:"red"`
 	Green  int `json:"green"`
 	Blue   int `json:"blue"`
-	Yellow int `json:"yellow,omitempty"`
+	Yellow int `json:"yellow"`
 }
 
 func EmptyCount() Count {
