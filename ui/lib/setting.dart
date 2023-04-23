@@ -1,23 +1,23 @@
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
 import 'package:ui/util.dart';
 
 class SettingScreen extends StatefulWidget {
-  const SettingScreen({super.key,setting});
-  
+  const SettingScreen({super.key,required this.setting});
+  final Setting? setting;
   @override
   State<SettingScreen> createState() => _SettingScreen();
 }
 
 class _SettingScreen extends State<SettingScreen> {
-  late Setting setting;
+  late Setting ?setting;
   final senderController = TextEditingController();
   final receiverController = TextEditingController();
   final passwordController = TextEditingController();
   @override
   void initState() {
     super.initState();
-    setting=widget;
+    setting=widget.setting;
   }
   @override
   void dispose() {
@@ -68,8 +68,9 @@ class _SettingScreen extends State<SettingScreen> {
           title: Text("Recivers"),
           subtitle: Text(setting?.receiver.join(", ")??"null"),
           onTap: () {
-            Setting newSetting=Setting.fromJson(setting!.toJson());
-            print(newSetting.receiver);
+            //Setting newSetting=Setting.fromJson(setting!.toJson());
+	    Setting? newSetting=null;
+            print(newSetting?.receiver);
             receiverController.text=setting?.receiver.join(", ")??"null";
             showDialog<String>(
               context: context,
@@ -80,7 +81,7 @@ class _SettingScreen extends State<SettingScreen> {
                   height: MediaQuery. of(context). size. height/3.5,
                   child: StatefulBuilder(
                       builder: (context,_setState) {
-                        if (setting!.receiver.isNotEmpty){
+                        if (setting?.receiver.isNotEmpty??true){
 
                           return Column(
                             children: [
@@ -88,25 +89,32 @@ class _SettingScreen extends State<SettingScreen> {
                                 child: ListView.builder(shrinkWrap: true, itemBuilder: (context, index) {
                                   return ListTile(
 
-                                    title: TextFormField(decoration: const InputDecoration(border: OutlineInputBorder()),initialValue: newSetting.receiver[index],onSaved: (newValue) {
-                                      newSetting.receiver[index]=newValue;
+                                    title: TextFormField(decoration: const InputDecoration(border: OutlineInputBorder()),initialValue: newSetting?.receiver[index],onSaved: (newValue) {
+                                      newSetting?.receiver[index]=newValue;
+
                                     },),trailing: IconButton(onPressed: () {
                                     _setState(() {
-                                      newSetting.receiver.removeAt(index);
+                                      newSetting?.receiver.removeAt(index);
                                     });
 
                                   }, icon: const Icon(Icons.delete)),);
-                                },itemCount: newSetting.receiver.length),
+                                },itemCount: newSetting?.receiver.length),
                               ),
                               IconButton(
                                   onPressed: () {
                                     _setState(() {
-                                      newSetting.receiver.add("");
+                                      newSetting?.receiver.add("");
                                     });
                                   }, icon: const Icon(Icons.add))
                             ],
                           );}else{
-                          return const Center(child: Text("There are no receiver"),);
+                          return Column(children: [ Center(child: Text("There are no receiver"),),IconButton(
+                                  onPressed: () {
+                                    _setState(() {
+                                      newSetting?.receiver.add("");
+                                    });
+                                  }, icon: const Icon(Icons.add))
+]);
                         }
                       }
                   ),
@@ -116,7 +124,7 @@ class _SettingScreen extends State<SettingScreen> {
                     onPressed: () {
                       Navigator.pop(context);
                       setState(() {
-                        newSetting.receiver.removeWhere((element) => element.toString().trim()=="",);
+                        newSetting?.receiver.removeWhere((element) => element.toString().trim()=="",);
                       });
                     },
                     child: const Text('Cancel'),
@@ -124,8 +132,8 @@ class _SettingScreen extends State<SettingScreen> {
                   TextButton(
                     onPressed: () {
                       setState(() {
-                        newSetting.receiver.removeWhere((element) => element.toString().trim()=="",);
-                        setting=Setting.fromJson(newSetting.toJson());
+                        newSetting?.receiver.removeWhere((element) => element.toString().trim()=="",);
+                        //setting=Setting.fromJson(newSetting!.toJson());
                       });
                       Navigator.pop(context);
                     },

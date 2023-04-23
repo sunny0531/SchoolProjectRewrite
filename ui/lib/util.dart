@@ -17,6 +17,6 @@ class Setting {
     "file": file,
     "sender":sender,
     "receiver":receiver,
-    "password":password
+    "password":password,
   };
 }
