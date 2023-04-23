@@ -10,6 +10,10 @@ type Config struct {
 	Sender   string   `json:"sender"`
 	Password string   `json:"password"`
 	File     os.File  `json:"-"`
+	Red      int      `json:"red"`
+	Green    int      `json:"green"`
+	Blue     int      `json:"blue"`
+	Yellow   int      `json:"yellow"`
 }
 
 func ConfigFromFile(filename string) Config {
