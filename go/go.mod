@@ -6,6 +6,8 @@ require (
 	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
 	github.com/emersion/go-smtp v0.16.0
 	github.com/gin-gonic/gin v1.9.0
+	github.com/stianeikeland/go-rpio/v4 v4.6.0
+	github.com/warthog618/gpio v1.0.1
 )
 
 require (

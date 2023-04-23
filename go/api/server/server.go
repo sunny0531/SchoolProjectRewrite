@@ -19,7 +19,7 @@ func DebugServer() *Server {
 	c := types.ConfigFromFile("config.json")
 	return &Server{
 		Router:  gin.Default(),
-		Address: "localhost:8080",
+		Address: "0.0.0.0:8080",
 		Config:  c,
 		Mail:    mail.FromConfig(c),
 	}

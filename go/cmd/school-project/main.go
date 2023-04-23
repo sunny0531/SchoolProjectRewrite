@@ -5,5 +5,8 @@ import (
 )
 
 func main() {
-	server.DebugServer().Run()
+	s := server.DebugServer()
+	//go s.Detect()
+	s.Run()
+
 }
