@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:ui/setting.dart';
 import 'package:ui/util.dart';
 
 void main() => runApp(const MyApp());
@@ -38,8 +39,14 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   late Future<Setting> _setting;
   Setting? setting;
   final senderController = TextEditingController();
-v  final receiverController = TextEditingController();
+  final receiverController = TextEditingController();
   final passwordController = TextEditingController();
+  Map<String,String>? header={ // whatever headers you need(I add auth)
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Headers": "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
+    "Access-Control-Allow-Methods": "POST, OPTIONS, GET"
+  };
   @override
   void dispose() {
     senderController.dispose();
@@ -47,8 +54,8 @@ v  final receiverController = TextEditingController();
     passwordController.dispose();
     super.dispose();
   }
-  Future<Setting> getSetting() async{
-    final response=await http.get(Uri.parse("http://raspberrypi.local:8080/setting"));
+  Future<Setting> _getSetting() async{
+    final response=await http.get(Uri.parse("http://localhost:8080/setting"));
     print( Setting.fromJson(jsonDecode(response.body)).sender);
     if (response.statusCode == 200) {
       return Setting.fromJson(jsonDecode(response.body));
@@ -60,10 +67,13 @@ v  final receiverController = TextEditingController();
   void initState() {
     super.initState();
     reset = false;
-    _setting=getSetting();
+    get_setting();
+
 
   }
-
+  void get_setting(){
+    _setting=_getSetting();
+  }
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -93,136 +103,7 @@ v  final receiverController = TextEditingController();
           ],
         ),
       ),
-      ListView(
-        children: [
-          ListTile(
-            title: const Text("Sender"),
-            subtitle: Text(setting?.sender??"null"),
-            onTap: () {
-              senderController.text=setting?.sender??"null";
-              showDialog<String>(
-                context: context,
-                builder: (BuildContext context) => AlertDialog(
-                  title: const Text("Set sender'p mail"),
-                  content: Focus(
-                    child: TextFormField(controller: senderController,decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-
-                labelText: "Mail address",
-              )),
-                    onFocusChange: (value) {
-                      if (value){
-                        keyboard.show(context, senderController);
-
-                      }else{
-                        Future.delayed(const Duration(milliseconds: 500), () {
-                          keyboard.hide();
-                        });
-
-                      }
-                    },
-                  ),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () { Navigator.pop(context, 'Cancel');keyboard.hide(force:true);},
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        keyboard.hide(force:true);
-                        setState(() {
-                          setting?.sender=senderController.text;
-                        });
-                        Navigator.pop(context, 'OK');
-                      },
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          ListTile(
-            title: Text("Recivers"),
-            subtitle: Text(setting?.receiver.join(", ")??"null"),
-            onTap: () {
-              Setting newSetting=Setting.fromJson(setting!.toJson());
-              print(newSetting.receiver);
-              receiverController.text=setting?.receiver.join(", ")??"null";
-              showDialog<String>(
-                context: context,
-                builder: (BuildContext context) => AlertDialog(
-                  title: const Text("Add/Remove receivers"),
-                  content: SizedBox(
-                    width: MediaQuery. of(context). size. width /3.5,
-                    height: MediaQuery. of(context). size. height/3.5,
-                    child: StatefulBuilder(
-                      builder: (context,_setState) {
-                        if (setting!.receiver.isNotEmpty){
-
-                        return Column(
-                          children: [
-                            Flexible(
-                              child: ListView.builder(shrinkWrap: true, itemBuilder: (context, index) {
-                                  return ListTile(
-
-                                    title: TextFormField(decoration: const InputDecoration(border: OutlineInputBorder()),initialValue: newSetting.receiver[index],onSaved: (newValue) {
-                                      newSetting.receiver[index]=newValue;
-                                    },),trailing: IconButton(onPressed: () {
-                                    _setState(() {
-                                      newSetting.receiver.removeAt(index);
-                                    });
-
-                                  }, icon: const Icon(Icons.delete)),);
-                              },itemCount: newSetting.receiver.length),
-                            ),
-                            IconButton(
-                                onPressed: () {
-                                  _setState(() {
-                                    newSetting.receiver.add("");
-                                  });
-                            }, icon: const Icon(Icons.add))
-                          ],
-                        );}else{
-                          return const Center(child: Text("There are no receiver"),);
-                        }
-                      }
-                    ),
-                  ),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        setState(() {
-                          newSetting.receiver.removeWhere((element) => element.toString().trim()=="",);
-                        });
-                      },
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          newSetting.receiver.removeWhere((element) => element.toString().trim()=="",);
-                          setting=Setting.fromJson(newSetting.toJson());
-                        });
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Accept'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          ListTile(
-            title: Text("Password"),
-            subtitle: Text("*"*(setting?.password.length??0)),
-            onTap: () {
-
-            },
-          ),
-        ],
-      )
+      SettingScreen(setting: setting)
     ];
     return Scaffold(
       appBar: AppBar(
@@ -230,25 +111,34 @@ v  final receiverController = TextEditingController();
         shadowColor: Theme.of(context).shadowColor,
         elevation: 2,
       ),
-      body: Row(
-        children: [
-          Expanded(
-            child: FutureBuilder(
-              future: _setting,
-              builder: (context,AsyncSnapshot<Setting> snapshot) {
-                if (snapshot.hasData) {
-                  setting=snapshot.data!;
-                  return Center(
-                    child: _widgetOptions.elementAt(_selectedIndex),
-                  );
-                }else{
-                  return Center(child: CircularProgressIndicator(),);
-                }
-              }
-            ),
-          ),
-
-        ],
+      body: FutureBuilder(
+        future: _setting,
+        builder: (context,AsyncSnapshot<Setting> snapshot) {
+          if (snapshot.hasData) {
+            setting=snapshot.data!;
+            return Center(
+              child: _widgetOptions.elementAt(_selectedIndex),
+            );
+          }else if(snapshot.error != null){
+            print(snapshot.error);
+            return Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                Text(snapshot.error.toString()),
+                TextButton(onPressed: (){
+                  setState(() {
+                    get_setting();
+                  });
+                }, child: const Text("Retry"))
+              ],),
+            );
+          }
+          else{
+            return const Center(child: CircularProgressIndicator(),);
+          }
+        }
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
