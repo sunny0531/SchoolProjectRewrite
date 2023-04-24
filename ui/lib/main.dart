@@ -41,12 +41,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   final senderController = TextEditingController();
   final receiverController = TextEditingController();
   final passwordController = TextEditingController();
-  Map<String,String>? header={ // whatever headers you need(I add auth)
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Allow-Headers": "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
-    "Access-Control-Allow-Methods": "POST, OPTIONS, GET"
-  };
   @override
   void dispose() {
     senderController.dispose();
@@ -103,7 +97,19 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           ],
         ),
       ),
-      SettingScreen(setting: setting)
+      Builder(
+        builder: (context) {
+          get_setting();
+          return FutureBuilder(builder: (context, snapshot) {
+    if (snapshot.hasData) {
+      setting = snapshot.data!;
+      return SettingScreen(setting: setting);
+    }else{
+      return Container();
+    }
+          },future: _setting,);
+        }
+      )
     ];
     return Scaffold(
       appBar: AppBar(
@@ -111,34 +117,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         shadowColor: Theme.of(context).shadowColor,
         elevation: 2,
       ),
-      body: FutureBuilder(
-        future: _setting,
-        builder: (context,AsyncSnapshot<Setting> snapshot) {
-          if (snapshot.hasData) {
-            setting=snapshot.data!;
-            return Center(
-              child: _widgetOptions.elementAt(_selectedIndex),
-            );
-          }else if(snapshot.error != null){
-            print(snapshot.error);
-            return Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                Text(snapshot.error.toString()),
-                TextButton(onPressed: (){
-                  setState(() {
-                    get_setting();
-                  });
-                }, child: const Text("Retry"))
-              ],),
-            );
-          }
-          else{
-            return const Center(child: CircularProgressIndicator(),);
-          }
-        }
+      body: Center(
+        child: _widgetOptions.elementAt(_selectedIndex),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
