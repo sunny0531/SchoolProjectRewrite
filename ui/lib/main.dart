@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:ui/CustomDialog.dart';
+import 'package:ui/edit.dart';
 import 'package:ui/setting.dart';
 import 'package:ui/util.dart';
 
@@ -59,31 +61,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
 
   void send_mail() {
     Future<http.Response> response = _send_mail();
-    showDialog(context: context, builder: (context) {
-      return AlertDialog(
-        actions: [
-          TextButton(onPressed: () => Navigator.maybePop(context), child: const Text("Ok"))
-        ],
-        title: const Text("Sending mail"),
-        content: StatefulBuilder(builder: (context, setState) {
-          return FutureBuilder(
-            builder: (context, AsyncSnapshot<http.Response> snapshot) {
-              if (snapshot.hasData) {
-                if (snapshot.data!.statusCode == 204){
-                  return const Text("Succeed");
-                }else{
-                  return Text("Error: ${snapshot.data?.body??"Unknown"}");
-                }
-              } else {
-                return const Column(mainAxisSize: MainAxisSize.min,children: [
-                  Text("Sending the mail"),
-                  CircularProgressIndicator()
-                ]);
-              }
-            }, future: response,);
-        },),
-      );
-    },);
+    confirmDialog(context, response, "Sending mail", "Sending the mail");
   }
 
   Future<Setting> _getSetting() async {
@@ -121,23 +99,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       const Center(
         child: Text("Home"),
       ),
-      Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            IconButton(onPressed: () {}, icon: const Icon(Icons.send)),
-            Switch(
-              value: reset,
-              onChanged: (value) {
-                setState(() {
-                  reset = value;
-                });
-              },
-            ),
-          ],
-        ),
-      ),
+      const EditScreen(),
       Builder(builder: (context) {
         get_setting();
         return FutureBuilder(
@@ -189,8 +151,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.send),
-            label: "Send gmail",
+            icon: Icon(Icons.edit),
+            label: "Edit",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

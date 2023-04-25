@@ -44,8 +44,9 @@ func (s *Server) Run() {
 			c.AbortWithStatus(400)
 		} else {
 			*s.Config = requestBody
+			c.Writer.WriteHeader(204)
 		}
-		c.Writer.WriteHeader(204)
+
 	})
 	s.Router.POST("/mail", func(c *gin.Context) {
 		println(*s.Mail.Sender)
@@ -64,6 +65,17 @@ func (s *Server) Run() {
 
 	})
 	s.Router.POST("/update", s.update)
+	s.Router.PUT("/update", func(c *gin.Context) {
+		var requestBody types.Count
+		err := c.BindJSON(&requestBody)
+		if err != nil {
+			c.AbortWithStatus(400)
+		} else {
+			s.Count = requestBody
+			c.Writer.WriteHeader(204)
+		}
+
+	})
 	err := s.Router.Run(s.Address)
 	if err != nil {
 		panic(err)

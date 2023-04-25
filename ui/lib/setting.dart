@@ -61,7 +61,7 @@ class _SettingScreen extends State<SettingScreen> {
                   subtitle: Text(setting?.sender ?? "null"),
                   onTap: () {
                     senderController.text = setting?.sender ?? "null";
-                    custom(context, senderController, "Mail address", "Set sender's mail", setting, (){
+                    custom(context, senderController, "Mail address", "Set sender's mail", (){
                       setState(() {
                         setting?.sender = senderController.text;
                       });
@@ -167,7 +167,7 @@ class _SettingScreen extends State<SettingScreen> {
                   subtitle: Text("*" * (setting?.password.length ?? 0)),
                   onTap: () {
                     passwordController.text = setting?.password ?? "null";
-                    custom(context, passwordController, "Password", "Set sender's password", setting, (){
+                    custom(context, passwordController, "Password", "Set sender's password", (){
                       setState(() {
                         setting?.password = passwordController.text;
                       });
@@ -179,7 +179,7 @@ class _SettingScreen extends State<SettingScreen> {
                   subtitle: Text(setting?.red.toString()??"null"),
                   onTap: () {
                     redController.text = setting?.red.toString() ?? "null";
-                    custom(context, redController, "Pin", "Set red pin", setting, (){
+                    custom(context, redController, "Pin", "Set red pin", (){
                       setState(() {
                         setting?.red = int.parse(redController.text);
                       });
@@ -191,7 +191,7 @@ class _SettingScreen extends State<SettingScreen> {
                   subtitle: Text(setting?.green.toString()??"null"),
                   onTap: () {
                     greenController.text = setting?.green.toString() ?? "null";
-                    custom(context, greenController, "Pin", "Set green pin", setting, (){
+                    custom(context, greenController, "Pin", "Set green pin", (){
                       setState(() {
                         setting?.green = int.parse(greenController.text);
                       });
@@ -203,7 +203,7 @@ class _SettingScreen extends State<SettingScreen> {
                   subtitle: Text(setting?.blue.toString()??"null"),
                   onTap: () {
                     blueController.text = setting?.blue.toString() ?? "null";
-                    custom(context, blueController, "Pin", "Set blue pin", setting, (){
+                    custom(context, blueController, "Pin", "Set blue pin", (){
                       setState(() {
                         setting?.blue = int.parse(blueController.text );
                       });
@@ -215,7 +215,7 @@ class _SettingScreen extends State<SettingScreen> {
                   subtitle: Text(setting?.yellow.toString()??"null"),
                   onTap: () {
                     yellowController.text = setting?.yellow.toString() ?? "null";
-                    custom(context, yellowController, "Pin", "Set yellow pin", setting, (){
+                    custom(context, yellowController, "Pin", "Set yellow pin", (){
                       setState(() {
                         setting?.yellow = int.parse(yellowController.text );
                       });

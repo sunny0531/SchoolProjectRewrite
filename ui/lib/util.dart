@@ -33,3 +33,22 @@ class Setting{
     "yellow": yellow
   };
 }
+class Count{
+  int red;
+  int green;
+  int blue;
+  int yellow;
+  Count(this.red,this.green, this.blue, this.yellow);
+  Count.fromJson(Map<String, dynamic> json)
+      :red=json["red"],
+        green=json["green"],
+        blue=json["blue"],
+        yellow=json["yellow"];
+
+  Map<String, dynamic> toJson() => {
+    "red": red,
+    "green":green,
+    "blue": blue,
+    "yellow": yellow
+  };
+}
