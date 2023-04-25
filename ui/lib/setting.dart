@@ -177,7 +177,7 @@ class _SettingScreen extends State<SettingScreen> {
                   subtitle: Text(setting?.red.toString()??"null"),
                   onTap: () {
                     redController.text = setting?.red.toString() ?? "null";
-                    custom(context, redController, "Password", "Set sender's password", setting, (){
+                    custom(context, redController, "Pin", "Set red pin", setting, (){
                       setState(() {
                         setting?.red = int.parse(redController.text);
                       });
@@ -189,7 +189,7 @@ class _SettingScreen extends State<SettingScreen> {
                   subtitle: Text(setting?.green.toString()??"null"),
                   onTap: () {
                     greenController.text = setting?.green.toString() ?? "null";
-                    custom(context, greenController, "Password", "Set sender's password", setting, (){
+                    custom(context, greenController, "Pin", "Set green pin", setting, (){
                       setState(() {
                         setting?.green = int.parse(greenController.text);
                       });
@@ -201,7 +201,7 @@ class _SettingScreen extends State<SettingScreen> {
                   subtitle: Text(setting?.blue.toString()??"null"),
                   onTap: () {
                     blueController.text = setting?.blue.toString() ?? "null";
-                    custom(context, blueController, "Password", "Set sender's password", setting, (){
+                    custom(context, blueController, "Pin", "Set blue pin", setting, (){
                       setState(() {
                         setting?.blue = int.parse(blueController.text );
                       });
@@ -213,7 +213,7 @@ class _SettingScreen extends State<SettingScreen> {
                   subtitle: Text(setting?.yellow.toString()??"null"),
                   onTap: () {
                     yellowController.text = setting?.yellow.toString() ?? "null";
-                    custom(context, yellowController, "Password", "Set sender's password", setting, (){
+                    custom(context, yellowController, "Pin", "Set yellow pin", setting, (){
                       setState(() {
                         setting?.yellow = int.parse(yellowController.text );
                       });
