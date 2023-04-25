@@ -9,23 +9,23 @@ import (
 )
 
 type Mail struct {
-	Auth      sasl.Client
 	Message   io.Reader
-	Sender    string
-	Receivers []string
+	Sender    *string
+	Password  *string
+	Receivers *[]string
 }
 
-func FromConfig(c types.Config) Mail {
-	auth := sasl.NewPlainClient("", c.Sender, c.Password)
+func FromConfig(c *types.Config) Mail {
 	msg := strings.NewReader(`abc`)
 	return Mail{
-		Auth:      auth,
 		Message:   msg,
-		Sender:    c.Sender,
-		Receivers: c.Receiver,
+		Sender:    &c.Sender,
+		Password:  &c.Password,
+		Receivers: &c.Receiver,
 	}
 }
 func (m Mail) Send() error {
-	err := smtp.SendMail("smtp.gmail.com:587", m.Auth, m.Sender, m.Receivers, m.Message)
+	auth := sasl.NewPlainClient("", *m.Sender, *m.Password)
+	err := smtp.SendMail("smtp.gmail.com:587", auth, *m.Sender, *m.Receivers, m.Message)
 	return err
 }

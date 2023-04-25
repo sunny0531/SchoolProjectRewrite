@@ -1,6 +1,8 @@
 package server
 
 import (
+	"errors"
+	"github.com/emersion/go-smtp"
 	"github.com/gin-gonic/gin"
 	"github.com/sunny0531/SchoolProject/api/types"
 	mail "github.com/sunny0531/SchoolProject/internal/mail/types"
@@ -8,7 +10,7 @@ import (
 )
 
 type Server struct {
-	Config  types.Config
+	Config  *types.Config
 	Router  *gin.Engine
 	Address string
 	Count   types.Count
@@ -20,8 +22,8 @@ func DebugServer() *Server {
 	return &Server{
 		Router:  gin.Default(),
 		Address: "0.0.0.0:8080",
-		Config:  c,
-		Mail:    mail.FromConfig(c),
+		Config:  &c,
+		Mail:    mail.FromConfig(&c),
 	}
 }
 func (s *Server) Run() {
@@ -41,14 +43,21 @@ func (s *Server) Run() {
 		if err != nil {
 			c.AbortWithStatus(400)
 		} else {
-			s.Config = requestBody
+			*s.Config = requestBody
 		}
 		c.Writer.WriteHeader(204)
 	})
 	s.Router.POST("/mail", func(c *gin.Context) {
+		println(*s.Mail.Sender)
 		err := s.Mail.Send()
-		if err != nil {
-			log.Fatal(err)
+		var e *smtp.SMTPError
+		if err != nil && errors.As(err, &e) {
+			if e.Code == 535 {
+				c.AbortWithStatusJSON(500, types.MailError{Error: "Username and Password not accepted"})
+			}
+		} else if err != nil {
+			log.Println(err)
+			c.AbortWithStatus(500)
 		} else {
 			c.Writer.WriteHeader(204)
 		}
