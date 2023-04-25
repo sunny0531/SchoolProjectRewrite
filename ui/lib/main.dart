@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:ui/setting.dart';
 import 'package:ui/util.dart';
 
+import 'global.dart';
+
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
@@ -50,9 +52,45 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     super.dispose();
   }
 
+  Future<http.Response> _send_mail() async {
+    final response = await http.post(Uri.parse("$url/mail"));
+    return response;
+  }
+
+  void send_mail() {
+    Future<http.Response> response = _send_mail();
+    showDialog(context: context, builder: (context) {
+      return AlertDialog(
+        actions: [
+          TextButton(onPressed: () => Navigator.maybePop(context), child: const Text("Ok"))
+        ],
+        title: const Text("Sending mail"),
+        content: StatefulBuilder(builder: (context, setState) {
+          return FutureBuilder(
+            builder: (context, AsyncSnapshot<http.Response> snapshot) {
+              if (snapshot.hasData) {
+                if (snapshot.data!.statusCode == 204){
+                  return const Text("Succeed");
+                }else{
+                  return Text("Error: ${snapshot.data?.body??"Unknown"}");
+                }
+              } else {
+                return const Column(mainAxisSize: MainAxisSize.min,children: [
+                  Text("Sending the mail"),
+                  CircularProgressIndicator()
+                ]);
+              }
+            }, future: response,);
+        },),
+      );
+    },);
+  }
+
   Future<Setting> _getSetting() async {
-    final response = await http.get(Uri.parse("http://localhost:8080/setting"));
-    print(Setting.fromJson(jsonDecode(response.body)).sender);
+    final response = await http.get(Uri.parse("$url/setting"));
+    print(Setting
+        .fromJson(jsonDecode(response.body))
+        .sender);
     if (response.statusCode == 200) {
       return Setting.fromJson(jsonDecode(response.body));
     } else {
@@ -110,17 +148,18 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             } else if (snapshot.hasError) {
               return Center(
                   child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(snapshot.error.toString()),
-                  IconButton(
-                      onPressed: () => setState(() {
-                            get_setting();
-                          }),
-                      icon: const Icon(Icons.restart_alt))
-                ],
-              ));
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(snapshot.error.toString()),
+                      IconButton(
+                          onPressed: () =>
+                              setState(() {
+                                get_setting();
+                              }),
+                          icon: const Icon(Icons.restart_alt))
+                    ],
+                  ));
             } else {
               return const CircularProgressIndicator();
             }
@@ -130,9 +169,14 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
       })
     ];
     return Scaffold(
+      floatingActionButton: FloatingActionButton(onPressed: () {
+        send_mail();
+      }, child: const Icon(Icons.send)),
       appBar: AppBar(
         title: const Text("App"),
-        shadowColor: Theme.of(context).shadowColor,
+        shadowColor: Theme
+            .of(context)
+            .shadowColor,
         elevation: 2,
       ),
       body: Center(

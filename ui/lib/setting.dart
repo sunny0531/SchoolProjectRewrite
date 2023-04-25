@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:ui/CustomDialog.dart';
 import 'package:ui/util.dart';
 
+import 'global.dart';
+
 class SettingScreen extends StatefulWidget {
   late Setting? setting;
 
@@ -40,7 +42,7 @@ class _SettingScreen extends State<SettingScreen> {
     super.dispose();
   }
   Future<http.Response> update() async{
-    return http.put(Uri.parse("http://localhost:8080/setting"),headers: {
+    return http.put(Uri.parse("$url/setting"),headers: {
       'Content-Type': 'application/json; charset=UTF-8',
     },body: json.encode(setting?.toJson()));
   }
