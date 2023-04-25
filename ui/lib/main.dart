@@ -41,6 +41,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   final senderController = TextEditingController();
   final receiverController = TextEditingController();
   final passwordController = TextEditingController();
+
   @override
   void dispose() {
     senderController.dispose();
@@ -48,26 +49,28 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     passwordController.dispose();
     super.dispose();
   }
-  Future<Setting> _getSetting() async{
-    final response=await http.get(Uri.parse("http://localhost:8080/setting"));
-    print( Setting.fromJson(jsonDecode(response.body)).sender);
+
+  Future<Setting> _getSetting() async {
+    final response = await http.get(Uri.parse("http://localhost:8080/setting"));
+    print(Setting.fromJson(jsonDecode(response.body)).sender);
     if (response.statusCode == 200) {
       return Setting.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Failed to get setting');
     }
   }
+
   @override
   void initState() {
     super.initState();
     reset = false;
     get_setting();
-
-
   }
-  void get_setting(){
-    _setting=_getSetting();
+
+  void get_setting() {
+    _setting = _getSetting();
   }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -90,26 +93,41 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
               value: reset,
               onChanged: (value) {
                 setState(() {
-                  reset=value;
+                  reset = value;
                 });
               },
             ),
           ],
         ),
       ),
-      Builder(
-        builder: (context) {
-          get_setting();
-          return FutureBuilder(builder: (context, snapshot) {
-    if (snapshot.hasData) {
-      setting = snapshot.data!;
-      return SettingScreen(setting: setting);
-    }else{
-      return Container();
-    }
-          },future: _setting,);
-        }
-      )
+      Builder(builder: (context) {
+        get_setting();
+        return FutureBuilder(
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              setting = snapshot.data!;
+              return SettingScreen(setting: setting);
+            } else if (snapshot.hasError) {
+              return Center(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(snapshot.error.toString()),
+                  IconButton(
+                      onPressed: () => setState(() {
+                            get_setting();
+                          }),
+                      icon: const Icon(Icons.restart_alt))
+                ],
+              ));
+            } else {
+              return const CircularProgressIndicator();
+            }
+          },
+          future: _setting,
+        );
+      })
     ];
     return Scaffold(
       appBar: AppBar(
