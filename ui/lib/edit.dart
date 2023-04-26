@@ -22,6 +22,7 @@ class _EditScreen extends State<EditScreen> {
   final greenController = TextEditingController();
   final blueController = TextEditingController();
   final yellowController = TextEditingController();
+  final bool done = false;
 
   Future<Count> get_count() async {
     final response = await http.get(Uri.parse("$url/count"));
@@ -47,82 +48,104 @@ class _EditScreen extends State<EditScreen> {
 
     _count = get_count();
   }
-  void update(Count c){
-    redController.text=c.red.toString();
-    greenController.text=c.green.toString();
-    blueController.text=c.blue.toString();
-    yellowController.text=c.yellow.toString();
+
+  void update(Count c) {
+    redController.text = c.red.toString();
+    greenController.text = c.green.toString();
+    blueController.text = c.blue.toString();
+    yellowController.text = c.yellow.toString();
   }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
       builder: (context, AsyncSnapshot<Count> snapshot) {
-
         if (snapshot.hasData) {
-          count=snapshot.data;
-          update(snapshot.data??Count(0, 0, 0, 0));
+            count = snapshot.data;
+          //print(count);
+          update(snapshot.data ?? Count(0, 0, 0, 0));
           return Center(
-            child: ListView(children: [
-              ListTile(
-                title: const Text("Red"),
-                subtitle: Text(count?.red.toString() ?? 0.toString()),
-                onTap: () {
-                  redController.text = count?.red.toString() ?? "null";
-                  custom(context, redController, "Red count", "Set the amount of time red is pressed", (){
+            child: ListView(
+              children: [
+                ListTile(
+                  title: const Text("Red"),
+                  subtitle: Text(count?.red.toString() ?? 0.toString()),
+                  onTap: () {
+                    redController.text = count?.red.toString() ?? "null";
+                    custom(context, redController, "Red count",
+                        "Set the amount of time red is pressed", () {
                       setState(() {
-                        count?.red=int.parse(redController.text);
+                        count?.red = int.parse(redController.text);
                       });
-                  },[FilteringTextInputFormatter.digitsOnly]);
-                },
-              ),
-              ListTile(
-                title: const Text("Green"),
-                subtitle: Text(count?.green.toString() ?? 0.toString()),
-                onTap: () {
-                  greenController.text = count?.green.toString() ?? "null";
-                  custom(context, greenController, "Red count", "Set the amount of time red is pressed", (){
-                    setState(() {
-                      count?.green=int.parse(greenController.text);
-                    });
-                  },[FilteringTextInputFormatter.digitsOnly]);
-                },
-              ),
-              ListTile(
-                title: const Text("Blue"),
-                subtitle: Text(count?.blue.toString() ?? 0.toString()),
-                onTap: () {
-                  blueController.text = count?.blue.toString() ?? "null";
-                  custom(context, blueController, "Red count", "Set the amount of time red is pressed", (){
-                    setState(() {
-                      count?.blue=int.parse(blueController.text);
-                    });
-                  },[FilteringTextInputFormatter.digitsOnly]);
-                },
-              ),
-              ListTile(
-                title: const Text("Yellow"),
-                subtitle: Text(count?.yellow.toString() ?? 0.toString()),
-                onTap: () {
-                  yellowController.text = count?.yellow.toString() ?? "null";
-                  custom(context, yellowController, "Red count", "Set the amount of time red is pressed", (){
-                    setState(() {
-                      count?.yellow=int.parse(yellowController.text);
-                    });
-                  },[FilteringTextInputFormatter.digitsOnly]);
-                },
-              ),
-              ListTile(
-                title: Text("Reset"),
+                    }, [FilteringTextInputFormatter.digitsOnly]);
+                  },
+                ),
+                ListTile(
+                  title: const Text("Green"),
+                  subtitle: Text(count?.green.toString() ?? 0.toString()),
+                  onTap: () {
+                    greenController.text = count?.green.toString() ?? "null";
+                    custom(context, greenController, "Red count",
+                        "Set the amount of time red is pressed", () {
+                      setState(() {
+                        count?.green = int.parse(greenController.text);
+                      });
+                    }, [FilteringTextInputFormatter.digitsOnly]);
+                  },
+                ),
+                ListTile(
+                  title: const Text("Blue"),
+                  subtitle: Text(count?.blue.toString() ?? 0.toString()),
+                  onTap: () {
+                    blueController.text = count?.blue.toString() ?? "null";
+                    custom(context, blueController, "Red count",
+                        "Set the amount of time red is pressed", () {
+                      setState(() {
+                        count?.blue = int.parse(blueController.text);
+                      });
+                    }, [FilteringTextInputFormatter.digitsOnly]);
+                  },
+                ),
+                ListTile(
+                  title: const Text("Yellow"),
+                  subtitle: Text(count?.yellow.toString() ?? 0.toString()),
+                  onTap: () {
+                    yellowController.text = count?.yellow.toString() ?? "null";
+                    custom(context, yellowController, "Red count",
+                        "Set the amount of time red is pressed", () {
+                      setState(() {
+                        count?.yellow = int.parse(yellowController.text);
+                      });
+                    }, [FilteringTextInputFormatter.digitsOnly]);
+                  },
+                ),
+                ListTile(
+                  title: Text("Reset"),
+                  onTap: () {
 
-              ),
-              ListTile(
-                title: Text("Save"),
-                onTap: (){
-                  final response = http.put(Uri.parse("$url/update"),body: json.encode(count?.toJson()));
-                  confirmDialog(context, response, "Saving", "Should be quick");
-                },
-              ),
-            ],),
+                    custom(context, null, null,
+                        "Reset", () {
+                          setState(() {
+                            count?.red=0;
+                            count?.green=0;
+                            count?.blue=0;
+                            count?.yellow=0;
+                          });
+                        },null,const Text("Do you want to reset all count to 0?"));
+                  },
+
+                ),
+                ListTile(
+                  title: Text("Save"),
+                  onTap: () {
+                    final response = http.put(Uri.parse("$url/update"),
+                        body: json.encode(count?.toJson()));
+                    confirmDialog(
+                        context, response, "Saving", "Should be quick");
+                  },
+                ),
+              ],
+            ),
           );
         } else if (snapshot.hasError) {
           return Center(

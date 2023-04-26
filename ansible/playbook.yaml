@@ -1,0 +1,129 @@
+- name: The facts is, I have no idea what I am doing (setting fact and apt upgrade)
+  hosts: schoolpi
+  tasks:
+    - name: Setting project path
+      set_fact:
+        program_path: "/home/sunny/school-project"
+    - name: apt update & apt upgrade
+      become: yes
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+    - name: Installing systemd
+      become: yes
+      apt:
+        name: systemd
+        state: present
+    - name: Installing gpiod
+      become: yes
+      apt:
+        name: gpiod
+        state: present
+
+    - name: Installing libgpiod-dev
+      become: yes
+      apt:
+        name: libgpiod-dev
+        state: present
+  tags:
+    - upload
+    - go
+    - flutter
+    - keyboard
+
+- name: On screen Keyboard
+  hosts: schoolpi
+  tasks:
+    - name: Installing on-screen keyboard
+      become: yes
+      apt:
+        name: matchbox-keyboard
+        state: present
+    - name: Creating toggle script
+      become: yes
+      synchronize:
+        src: "{{ playbook_dir }}/services/toggle-keyboard.sh"
+        dest: /usr/bin/toggle-keyboard.sh
+        rsync_opts:
+          - "--chmod=+x"
+    - name: Creating desktop file
+      become: yes
+      synchronize:
+        src: "{{ playbook_dir }}/services/toggle-keyboard.desktop"
+        dest: "/usr/share/raspi-ui-overrides/applications/toggle-keyboard.desktop"
+    - name: Uploading config
+      copy:
+        src: "{{ playbook_dir }}/services/panel"
+        dest: /home/sunny/.config/lxpanel/LXDE-pi/panels/panel
+    - name: Apply settings
+      command: "lxpanelctl restart"
+  tags:
+    - keyboard
+- name: Copying project file
+  hosts: schoolpi
+  tasks:
+    - name: Copying server executable
+      synchronize:
+        src: "{{ playbook_dir }}/../go/build/school-project-linux-arm64"
+        dest: "{{ program_path }}/"
+        delete: true
+        recursive: true
+    - name: Copying config
+      synchronize:
+        src: "{{ playbook_dir }}/../go/config.json"
+        dest: "{{ program_path }}/"
+        delete: true
+        recursive: true
+    - name: Copying server service file
+      synchronize:
+        src : "{{ playbook_dir }}/services/school-project-server.service"
+        dest: "{{ program_path }}/"
+        recursive: true
+    - name: Linking service file
+      become: yes
+      file:
+        src: "{{ program_path }}/school-project-server.service"
+        dest: "/lib/systemd/system/school-project-server.service"
+        state: link
+    - name: Changing file permission
+      become: yes
+      file:
+        path: "/lib/systemd/system/school-project-server.service"
+        mode: 644
+  tags:
+    - upload
+    - go
+- name: Backend (Golang)
+  hosts: schoolpi
+  tasks:
+    - name: Setting up service
+      become: yes
+      ansible.builtin.systemd:
+        daemon_reload: yes
+        name: school-project-server.service
+        enabled: true
+    - name: Starting service
+      become: yes
+      ansible.builtin.systemd:
+        state: restarted
+        name: school-project-server.service
+    - name: Testing service
+      command: "systemctl status school-project-server"
+  tags:
+    - go
+- name: UI (Flutter)
+  hosts: schoolpi
+  tasks:
+    - name: Downloading dependencies
+      become: yes
+      apt:
+        pkg:
+          - apache2
+    - name: Uplioading file
+      become: yes
+      synchronize:
+        src: "{{ playbook_dir }}/../ui/build/web"
+        dest: /var/www/html/
+
+  tags:
+    - flutter

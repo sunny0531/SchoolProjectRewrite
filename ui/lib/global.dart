@@ -1,1 +1,1 @@
-String url="http://localhost:8080";
+String url="http://raspberrypi.local:8080";

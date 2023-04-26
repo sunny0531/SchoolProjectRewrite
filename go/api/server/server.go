@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"github.com/emersion/go-smtp"
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,7 @@ type Server struct {
 	Address string
 	Count   types.Count
 	Mail    mail.Mail
+	cancel  *context.CancelFunc
 }
 
 func DebugServer() *Server {
@@ -44,13 +46,17 @@ func (s *Server) Run() {
 			c.AbortWithStatus(400)
 		} else {
 			*s.Config = requestBody
+
+			cancelFunc := *s.cancel
+			cancelFunc()
+			s.Detect()
 			c.Writer.WriteHeader(204)
 		}
 
 	})
 	s.Router.POST("/mail", func(c *gin.Context) {
 		println(*s.Mail.Sender)
-		err := s.Mail.Send()
+		err := s.Mail.Send(s.Count)
 		var e *smtp.SMTPError
 		if err != nil && errors.As(err, &e) {
 			if e.Code == 535 {
