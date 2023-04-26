@@ -3,17 +3,23 @@ import 'package:flutter/services.dart';
 import 'package:ui/util.dart';
 import 'package:http/http.dart' as http;
 
-void custom(BuildContext context,TextEditingController controller,String label,String title, Function confirmed,[List<TextInputFormatter>? formatters]){
+void custom(BuildContext context,TextEditingController? controller,String? label,String title, Function confirmed,[List<TextInputFormatter>? formatters,Widget? content]){
+  late Widget body;
+  if (content==null){
+    body=TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: label,
+      ),inputFormatters: formatters,);
+  }else{
+    body=content;
+  }
   showDialog<String>(
     context: context,
     builder: (BuildContext context) => AlertDialog(
       title: Text(title),
-      content: TextFormField(
-          controller: controller,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            labelText: label,
-          ),inputFormatters: formatters,),
+      content: body,
       actions: <Widget>[
         TextButton(
           onPressed: () {

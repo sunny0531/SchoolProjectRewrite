@@ -1,50 +1,79 @@
 package server
 
 import (
-	"github.com/warthog618/gpio"
-	"os"
-	"os/signal"
+	"context"
+	"github.com/warthog618/gpiod"
+	_ "github.com/warthog618/gpiod"
+	"github.com/warthog618/gpiod/device/rpi"
+	"strconv"
 )
 
 func (s *Server) Detect() {
-	defer gpio.Close()
-	err := gpio.Open()
-	if err != nil {
-		panic(err)
-	}
-	red := gpio.NewPin(s.Config.Red)
-	green := gpio.NewPin(s.Config.Green)
-	blue := gpio.NewPin(s.Config.Blue)
-	yellow := gpio.NewPin(s.Config.Yellow)
-	err1 := setup([]*gpio.Pin{red, green, blue, yellow}, s)
-	if err1 != nil {
-		panic(err1)
-	}
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		gpio.Close()
-	}()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	s.cancel = &cancel
+	s._detect(ctx)
 }
-func setup(pins []*gpio.Pin, s *Server) error {
-	for _, p := range pins {
-		p.Input()
-		p.PullDown()
-		err := p.Watch(gpio.EdgeRising, func(pin *gpio.Pin) {
-			switch pin.Pin() {
-			case s.Config.Red:
+func (s *Server) _detect(ctx context.Context) {
+	println("hi")
+	c, _ := gpiod.NewChip("gpiochip0")
+	defer c.Close()
+
+	for _, e := range []int{s.Config.Red, s.Config.Green, s.Config.Blue, s.Config.Yellow} {
+		println(rpi.MustPin("j8p" + strconv.Itoa(e)))
+		t, err := c.RequestLine(rpi.MustPin("j8p"+strconv.Itoa(e)), gpiod.WithEventHandler(func(event gpiod.LineEvent) {
+			println(event.Offset)
+			switch event.Offset {
+
+			case rpi.MustPin("j8p" + strconv.Itoa(s.Config.Red)):
 				s.Count.Red += 1
-			case s.Config.Green:
+			case rpi.MustPin("j8p" + strconv.Itoa(s.Config.Green)):
 				s.Count.Green += 1
-			case s.Config.Blue:
+			case rpi.MustPin("j8p" + strconv.Itoa(s.Config.Blue)):
 				s.Count.Blue += 1
-			case s.Config.Yellow:
+			case rpi.MustPin("j8p" + strconv.Itoa(s.Config.Yellow)):
 				s.Count.Yellow += 1
 			}
-		})
+		}))
+		a, _ := t.Info()
+		println(a.Consumer)
 		if err != nil {
-			return err
+			panic(err)
+		}
+
+		defer func(t *gpiod.Line) {
+			err := t.Close()
+			if err != nil {
+				panic(err)
+			}
+		}(t)
+		/*
+			info, err := c.WatchLineInfo(rpi.MustPin("j8p"+strconv.Itoa(e)), func(event gpiod.LineInfoChangeEvent) {
+				println(event.Info.Offset)
+				switch event.Info.Offset {
+
+				case rpi.MustPin("j8p" + strconv.Itoa(s.Config.Red)):
+					s.Count.Red += 1
+				case rpi.MustPin("j8p" + strconv.Itoa(s.Config.Green)):
+					s.Count.Green += 1
+				case rpi.MustPin("j8p" + strconv.Itoa(s.Config.Blue)):
+					s.Count.Blue += 1
+				case rpi.MustPin("j8p" + strconv.Itoa(s.Config.Yellow)):
+					s.Count.Yellow += 1
+				}
+			})
+			println(info.Name)
+			if err != nil {
+				panic(err)
+			}
+		*/
+	}
+
+	select {
+	case <-ctx.Done():
+		err := c.Close()
+		if err != nil {
+			panic(err)
 		}
 	}
-	return nil
 }
