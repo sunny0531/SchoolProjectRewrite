@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"github.com/emersion/go-smtp"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sunny0531/SchoolProject/api/types"
 	mail "github.com/sunny0531/SchoolProject/internal/mail/types"
 	"log"
+	"time"
 )
 
 type Server struct {
@@ -16,7 +18,7 @@ type Server struct {
 	Address string
 	Count   types.Count
 	Mail    mail.Mail
-	cancel  *context.CancelFunc
+	Cancel  *context.CancelFunc
 }
 
 func DebugServer() *Server {
@@ -29,6 +31,13 @@ func DebugServer() *Server {
 	}
 }
 func (s *Server) Run() {
+	s.Router.Use(cors.New(cors.Config{
+		AllowOrigins:  []string{"*"},
+		AllowMethods:  []string{"PUT", "GET", "POST"},
+		AllowHeaders:  []string{"*"},
+		ExposeHeaders: []string{"Content-Length"},
+		MaxAge:        12 * time.Hour,
+	}))
 	s.Router.GET("/count", func(c *gin.Context) {
 		c.JSON(200, s.Count)
 	})
@@ -46,10 +55,7 @@ func (s *Server) Run() {
 			c.AbortWithStatus(400)
 		} else {
 			*s.Config = requestBody
-
-			cancelFunc := *s.cancel
-			cancelFunc()
-			s.Detect()
+			go s.Detect()
 			c.Writer.WriteHeader(204)
 		}
 

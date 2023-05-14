@@ -6,7 +6,7 @@ import (
 
 func main() {
 	s := server.DebugServer()
-	s.Detect()
+	go s.Detect()
 	s.Run()
 
 }

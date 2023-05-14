@@ -25,16 +25,16 @@ func FromConfig(c *types.Config) Mail {
 	}
 }
 func (m Mail) Send(c types.Count) error {
-	total := c.Red + c.Green + c.Blue + c.Yellow
+	total := float64(c.Red + c.Green + c.Blue + c.Yellow)
 	if total == 0 {
 		auth := sasl.NewPlainClient("", *m.Sender, *m.Password)
 		err := smtp.SendMail("smtp.gmail.com:587", auth, *m.Sender, *m.Receivers, strings.NewReader("No button is pressed"))
 		return err
 	} else {
-		rp := fmt.Sprintf("%.2f", c.Red/total)
-		gp := fmt.Sprintf("%.2f", c.Green/total)
-		bp := fmt.Sprintf("%.2f", c.Blue/total)
-		yp := fmt.Sprintf("%.2f", c.Yellow/total)
+		rp := fmt.Sprintf("%.2f", float64(c.Red)/total)
+		gp := fmt.Sprintf("%.2f", float64(c.Green)/total)
+		bp := fmt.Sprintf("%.2f", float64(c.Blue)/total)
+		yp := fmt.Sprintf("%.2f", float64(c.Yellow)/total)
 		data := map[string]interface{}{"total": total, "red": c.Red, "green": c.Green, "blue": c.Blue, "yellow": c.Yellow, "rp": rp, "gp": gp, "bp": bp, "yp": yp}
 		tmpl, err := template.New("").Parse(`
 Report:
