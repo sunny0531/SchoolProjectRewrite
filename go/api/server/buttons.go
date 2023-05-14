@@ -8,46 +8,43 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"syscall"
 )
 
-func (s *Server) Detect() {
+func (s *Server) Detect() bool {
 	if s.Cancel != nil {
 		c := *s.Cancel
 		c()
+		s.Cancel = nil
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	s.Cancel = &cancel
-	go s._detect(ctx)
+	succeed := make(chan bool)
+	go s._detect(ctx, succeed)
+	return <-succeed
 }
-func (s *Server) _detect(ctx context.Context) {
-	cmd := exec.CommandContext("python3", "workaround.py", strconv.Itoa(s.Config.Red), strconv.Itoa(s.Config.Green), strconv.Itoa(s.Config.Blue), strconv.Itoa(s.Config.Yellow))
+func (s *Server) _detect(ctx context.Context, succeed chan bool) {
+	cmd := exec.CommandContext(ctx, "python3", "workaround.py", strconv.Itoa(s.Config.Red), strconv.Itoa(s.Config.Green), strconv.Itoa(s.Config.Blue), strconv.Itoa(s.Config.Yellow))
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
 
 	err := cmd.Start()
 	if err != nil {
-		panic(err)
+		println(err)
 	}
-	defer func(Process *os.Process, sig os.Signal) {
-		println("stop")
-		err := Process.Signal(sig)
-		if err != nil {
-			panic(err)
-		}
-	}(cmd.Process, syscall.SIGTERM)
 	go func() {
 		_, err := io.Copy(os.Stderr, stderr)
 		if err != nil {
-			panic(err)
+			println(err)
 		}
 	}()
-
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
 		println(scanner.Text())
 		switch scanner.Text() {
+		case "succeed":
+			succeed <- true
+		case "failed":
+			succeed <- false
 		case strconv.Itoa(s.Config.Red):
 			s.Count.Red += 1
 		case strconv.Itoa(s.Config.Green):
@@ -58,5 +55,4 @@ func (s *Server) _detect(ctx context.Context) {
 			s.Count.Yellow += 1
 		}
 	}
-
 }

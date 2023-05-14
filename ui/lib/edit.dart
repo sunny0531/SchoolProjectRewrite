@@ -24,15 +24,6 @@ class _EditScreen extends State<EditScreen> {
   final yellowController = TextEditingController();
   final bool done = false;
 
-  Future<Count> get_count() async {
-    final response = await http.get(Uri.parse("$url/count"));
-    if (response.statusCode == 200) {
-      return Count.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to get setting');
-    }
-  }
-
   @override
   void dispose() {
     super.dispose();
@@ -61,7 +52,7 @@ class _EditScreen extends State<EditScreen> {
     return FutureBuilder(
       builder: (context, AsyncSnapshot<Count> snapshot) {
         if (snapshot.hasData) {
-            count = snapshot.data;
+          count = snapshot.data;
           //print(count);
           update(snapshot.data ?? Count(0, 0, 0, 0));
           return Center(
@@ -122,18 +113,50 @@ class _EditScreen extends State<EditScreen> {
                 ListTile(
                   title: Text("Reset"),
                   onTap: () {
+                    bool save = true;
+                    custom(context, null, null, "Reset", () {
+                      setState(() {
+                        count?.red = 0;
+                        count?.green = 0;
+                        count?.blue = 0;
+                        count?.yellow = 0;
+                        if (save) {
+                          final response = http.put(Uri.parse("$url/update"),
+                              body: json.encode(count?.toJson()));
+                          confirmDialog(
+                              context, response, "Saving", "Should be quick");
+                        }
+                      });
+                    },
+                        null,
+                        StatefulBuilder(
+                          builder: (context,set_) {
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text("Do you want to reset all count to 0?"),
+                                SizedBox(height: 3,),
+                                SizedBox(
+                                  height: MediaQuery. of(context). size. height/38,
+                                  width:MediaQuery. of(context). size. width/38,
+                                  child: FittedBox(
+                                    child: Switch(
+                                      value: save,
+                                      onChanged: (value) {
+                                        set_(() {
+                                          save = !save;
 
-                    custom(context, null, null,
-                        "Reset", () {
-                          setState(() {
-                            count?.red=0;
-                            count?.green=0;
-                            count?.blue=0;
-                            count?.yellow=0;
-                          });
-                        },null,const Text("Do you want to reset all count to 0?"));
+                                        });
+                                      },
+                                      thumbIcon: MaterialStateProperty.all(const Icon(Icons.save)),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            );
+                          }
+                        ));
                   },
-
                 ),
                 ListTile(
                   title: Text("Save"),

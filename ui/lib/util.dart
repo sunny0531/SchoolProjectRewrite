@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+import 'global.dart';
 
 class Setting{
   String sender;
@@ -51,4 +54,12 @@ class Count{
     "blue": blue,
     "yellow": yellow
   };
+}
+Future<Count> get_count() async {
+  final response = await http.get(Uri.parse("$url/count"));
+  if (response.statusCode == 200) {
+    return Count.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to get setting');
+  }
 }

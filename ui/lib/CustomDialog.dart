@@ -29,8 +29,9 @@ void custom(BuildContext context,TextEditingController? controller,String? label
         ),
         TextButton(
           onPressed: () {
-            confirmed();
+
             Navigator.pop(context, 'OK');
+            confirmed();
           },
           child: const Text('OK'),
         ),

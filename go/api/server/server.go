@@ -30,7 +30,12 @@ func DebugServer() *Server {
 		Mail:    mail.FromConfig(&c),
 	}
 }
+func (s *Server) Cleanup() {
+	c := *s.Cancel
+	c()
+}
 func (s *Server) Run() {
+	defer s.Cleanup()
 	s.Router.Use(cors.New(cors.Config{
 		AllowOrigins:  []string{"*"},
 		AllowMethods:  []string{"PUT", "GET", "POST"},
@@ -55,8 +60,13 @@ func (s *Server) Run() {
 			c.AbortWithStatus(400)
 		} else {
 			*s.Config = requestBody
-			go s.Detect()
-			c.Writer.WriteHeader(204)
+			sb := s.Detect()
+			println(sb)
+			if sb {
+				c.Writer.WriteHeader(204)
+			} else {
+				c.AbortWithStatusJSON(500, types.GPIOError{Error: "Failed to start GPIO workaround"})
+			}
 		}
 
 	})

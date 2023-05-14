@@ -14,57 +14,36 @@
       apt:
         name: systemd
         state: present
-    - name: Installing gpiod
+    - name: Installing python
       become: yes
       apt:
-        name: gpiod
+        name: python
         state: present
-
-    - name: Installing libgpiod-dev
+    - name: Installing pip
       become: yes
       apt:
-        name: libgpiod-dev
+        name: python3-pip
         state: present
+    - name: Installing GPIO
+      become: yes
+      pip:
+        name: RPi.GPIO
   tags:
     - upload
     - go
     - flutter
-    - keyboard
-
-- name: On screen Keyboard
-  hosts: schoolpi
-  tasks:
-    - name: Installing on-screen keyboard
-      become: yes
-      apt:
-        name: matchbox-keyboard
-        state: present
-    - name: Creating toggle script
-      become: yes
-      synchronize:
-        src: "{{ playbook_dir }}/services/toggle-keyboard.sh"
-        dest: /usr/bin/toggle-keyboard.sh
-        rsync_opts:
-          - "--chmod=+x"
-    - name: Creating desktop file
-      become: yes
-      synchronize:
-        src: "{{ playbook_dir }}/services/toggle-keyboard.desktop"
-        dest: "/usr/share/raspi-ui-overrides/applications/toggle-keyboard.desktop"
-    - name: Uploading config
-      copy:
-        src: "{{ playbook_dir }}/services/panel"
-        dest: /home/sunny/.config/lxpanel/LXDE-pi/panels/panel
-    - name: Apply settings
-      command: "lxpanelctl restart"
-  tags:
-    - keyboard
 - name: Copying project file
   hosts: schoolpi
   tasks:
     - name: Copying server executable
       synchronize:
         src: "{{ playbook_dir }}/../go/build/school-project-linux-arm64"
+        dest: "{{ program_path }}/"
+        delete: true
+        recursive: true
+    - name: Copying workaround
+      synchronize:
+        src: "{{ playbook_dir }}/../py/workaround.py"
         dest: "{{ program_path }}/"
         delete: true
         recursive: true
@@ -107,8 +86,6 @@
       ansible.builtin.systemd:
         state: restarted
         name: school-project-server.service
-    - name: Testing service
-      command: "systemctl status school-project-server"
   tags:
     - go
 - name: UI (Flutter)
@@ -119,11 +96,15 @@
       apt:
         pkg:
           - apache2
-    - name: Uplioading file
+    - name: Uploading file
       become: yes
       synchronize:
-        src: "{{ playbook_dir }}/../ui/build/web"
+        src: "{{ playbook_dir }}/../ui/build/web/"
         dest: /var/www/html/
-
+    - name: Enabling stuff
+      become: yes
+      community.general.apache2_module:
+        state: present
+        name: headers
   tags:
     - flutter

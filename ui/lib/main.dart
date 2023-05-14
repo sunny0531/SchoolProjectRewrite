@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:ui/CustomDialog.dart';
 import 'package:ui/edit.dart';
+import 'package:ui/home.dart';
 import 'package:ui/setting.dart';
 import 'package:ui/util.dart';
 
@@ -14,13 +15,13 @@ void main() => runApp(const MyApp());
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  static const String _title = 'Flutter Code Sample';
+  static const String _title = "Buttons";
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: _title,
-      home: const MyStatefulWidget(),
+      home: const MyStatefulWidget(title: _title),
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: const Color.fromRGBO(178, 57, 80, 255),
@@ -30,8 +31,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MyStatefulWidget extends StatefulWidget {
-  const MyStatefulWidget({super.key});
-
+  const MyStatefulWidget({super.key, required this.title});
+  final String title;
   @override
   State<MyStatefulWidget> createState() => _MyStatefulWidgetState();
 }
@@ -96,9 +97,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   @override
   Widget build(BuildContext context) {
     _widgetOptions = <Widget>[
-      const Center(
-        child: Text("Home"),
-      ),
+      HomeScreen(),
       const EditScreen(),
       Builder(builder: (context) {
         get_setting();
@@ -123,6 +122,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                     ],
                   ));
             } else {
+              print(snapshot.error);
               return const CircularProgressIndicator();
             }
           },
@@ -135,7 +135,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
         send_mail();
       }, child: const Icon(Icons.send)),
       appBar: AppBar(
-        title: const Text("App"),
+        title: Text(widget.title),
         shadowColor: Theme
             .of(context)
             .shadowColor,
